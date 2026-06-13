@@ -1,0 +1,9 @@
+{
+  "updated": "2026-06-13",
+  "results": [
+    { "home": "México",        "away": "Sudáfrica",    "sh": 2, "sa": 0 },
+    { "home": "Corea del Sur", "away": "Rep. Checa",   "sh": 2, "sa": 1 },
+    { "home": "Canadá",        "away": "Bosnia-Herz.", "sh": 1, "sa": 1 },
+    { "home": "EE.UU.",        "away": "Paraguay",     "sh": 4, "sa": 1 }
+  ]
+}

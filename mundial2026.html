@@ -827,35 +827,27 @@ function saveApiKey() {
 // ACTUALIZACIÓN VÍA API
 // ═══════════════════════════════════════════════════════════
 async function doUpdate() {
-  const BIN_ID = "6a2d2090da38895dfeb9750a";
-  const MASTER_KEY = "$2a$10$2Y9gS7sOIARKbtHusrv.B.gSVjDbAB.ggWQ4GqafsJc24MRrjodrG";
+  const JSON_URL = "https://raw.githubusercontent.com/aaguirre-nuv/mundial2026/main/resultados.json";
   const btn = document.getElementById("btn-update");
   const msg = document.getElementById("update-msg");
   btn.disabled = true; btn.textContent = "⟳ Leyendo…";
   msg.textContent = "Consultando resultados…"; msg.className = "";
   try {
-    const resp = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-      headers: {
-        "X-Master-Key": MASTER_KEY,
-        "X-Bin-Meta": "false"
-      }
-    });
-    if (!resp.ok) {
-      const txt = await resp.text().catch(()=>"");
-      throw new Error(`HTTP ${resp.status} · ${txt.slice(0,80)}`);
-    }
+    const resp = await fetch(JSON_URL + "?t=" + Date.now()); // cache-bust
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-    // JSONbin with X-Bin-Meta:false returns the record directly
-    const record = data.record || data;
-    const results = record.results;
-    if (!Array.isArray(results)) throw new Error("Sin array results en el bin");
+    const results = data.results;
+    if (!Array.isArray(results)) throw new Error("Formato inesperado");
+    let added = 0;
     results.forEach(r => {
       const m = state.matches.find(x => x.h === r.home && x.a === r.away);
-      if (m) { m.sh = r.sh; m.sa = r.sa; m.done = true; }
+      if (m && !m.done) { // solo añade si NO está ya introducido a mano
+        m.sh = r.sh; m.sa = r.sa; m.done = true; added++;
+      }
     });
     persist(); renderAll();
     const now = new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
-    msg.textContent = `✓ ${results.length} partidos · ${record.updated||""} · ${now}`;
+    msg.textContent = `✓ ${added} nuevos · ${data.updated||""} · ${now}`;
     msg.className = "ok";
   } catch(e) {
     msg.textContent = `⚠ ${e.message}`; msg.className = "err";
