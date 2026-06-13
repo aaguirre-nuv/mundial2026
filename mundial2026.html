@@ -830,62 +830,63 @@ function saveApiKey() {
 async function doUpdate() {
   if (!state.apiKey) {
     openApiKey();
-    document.getElementById("update-msg").textContent = "Introduce tu API key primero";
-    document.getElementById("update-msg").className = "err";
     return;
   }
   const btn = document.getElementById("btn-update");
   const msg = document.getElementById("update-msg");
   btn.disabled = true; btn.textContent = "⟳ Consultando…";
-  msg.textContent = "Consultando resultados…"; msg.className = "";
+  msg.textContent = "Conectando con API…"; msg.className = "";
 
-  const teamNames = Object.values(GROUPS_DEF).flat().join(", ");
   const today = new Date().toISOString().slice(0,10);
-  const prompt = `Eres un asistente de resultados del Mundial FIFA 2026. Hoy es ${today}.
-
-Devuelve ÚNICAMENTE un objeto JSON válido, sin markdown, sin texto adicional, con este formato exacto:
-{"results":[{"home":"México","away":"Sudáfrica","sh":2,"sa":0}],"updatedAt":"${today}"}
-
-Incluye SOLO partidos ya jugados con resultado oficial confirmado a fecha de hoy.
-Nombres de equipos exactos: ${teamNames}`;
+  const prompt = `Mundial FIFA 2026. Hoy es ${today}. Lista todos los partidos ya jugados con resultado confirmado. Responde SOLO con JSON, sin texto adicional:\n{"results":[{"home":"México","away":"Sudáfrica","sh":2,"sa":0}]}`;
 
   try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": state.apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-calls": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2000,
-        messages: [{ role:"user", content: prompt }],
-      })
-    });
+    let resp;
+    try {
+      resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": state.apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-calls": "true"
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1000,
+          messages: [{ role:"user", content: prompt }],
+        })
+      });
+    } catch(networkErr) {
+      // Network-level error (CORS, no internet, DNS...)
+      showDiag("❌ Error de red", `No se pudo conectar con api.anthropic.com\n\n${networkErr.message}\n\nPosibles causas:\n• La API key no tiene el formato correcto (debe empezar por sk-ant-)\n• Sin conexión a internet\n• CORS bloqueado por el navegador`);
+      throw networkErr;
+    }
+
+    const rawText = await resp.text();
 
     if (!resp.ok) {
-      const errBody = await resp.json().catch(() => ({}));
-      const errMsg = errBody?.error?.message || `HTTP ${resp.status}`;
+      let errMsg = `HTTP ${resp.status}`;
+      try { errMsg = JSON.parse(rawText)?.error?.message || errMsg; } catch{}
+      showDiag(`❌ Error API (${resp.status})`, rawText);
       throw new Error(errMsg);
     }
 
-    const data = await resp.json();
-
-    // Find the text block — could be anywhere in content array
+    const data = JSON.parse(rawText);
     const textBlock = data.content?.find(b => b.type === "text");
-    if (!textBlock?.text) throw new Error("Respuesta vacía del modelo");
+    if (!textBlock?.text) {
+      showDiag("❌ Respuesta inesperada", JSON.stringify(data, null, 2));
+      throw new Error("Sin bloque de texto en la respuesta");
+    }
 
-    // Strip any accidental markdown fences
     let json = textBlock.text.trim().replace(/^```[a-z]*\n?/,"").replace(/\n?```$/,"").trim();
-
-    // Sometimes the model wraps in extra text — try to extract JSON object
     const jsonMatch = json.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No se encontró JSON en la respuesta");
-    json = jsonMatch[0];
+    if (!jsonMatch) {
+      showDiag("❌ JSON no encontrado", textBlock.text);
+      throw new Error("No se encontró JSON válido");
+    }
 
-    const parsed = JSON.parse(json);
+    const parsed = JSON.parse(jsonMatch[0]);
     if (!Array.isArray(parsed.results)) throw new Error("Formato inesperado");
 
     parsed.results.forEach(r => {
@@ -896,11 +897,30 @@ Nombres de equipos exactos: ${teamNames}`;
     const now = new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
     msg.textContent = `✓ ${parsed.results.length} resultado${parsed.results.length!==1?"s":""} · ${now}`;
     msg.className = "ok";
+
   } catch(e) {
-    msg.textContent = `⚠ ${e.message}`; msg.className = "err";
+    if (!e._shown) msg.textContent = `⚠ ${e.message}`; msg.className = "err";
   } finally {
     btn.disabled = false; btn.textContent = "🔄 Actualizar resultados";
   }
+}
+
+function showDiag(title, body) {
+  // Show raw API response in a modal for debugging
+  const existing = document.getElementById("diag-modal");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.id = "diag-modal";
+  el.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px";
+  el.innerHTML = `<div style="background:#0d2240;border:1px solid rgba(240,208,96,.3);border-radius:14px;padding:18px;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#f0d060">${title}</span>
+      <button onclick="document.getElementById('diag-modal').remove()" style="background:none;border:none;color:#7a9abf;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <textarea readonly style="flex:1;min-height:200px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#eaf2ff;font-size:11px;font-family:monospace;padding:10px;resize:none;overflow-y:auto">${body.replace(/</g,'&lt;')}</textarea>
+    <div style="font-size:10px;color:#7a9abf">Copia este texto y compártelo para diagnosticar el problema</div>
+  </div>`;
+  document.body.appendChild(el);
 }
 
 // ═══════════════════════════════════════════════════════════
