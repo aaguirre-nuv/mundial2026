@@ -335,7 +335,6 @@ echo "CSS ok: $(wc -l < /tmp/bk_css.html) lines"</style>
 <div id="update-bar">
   <button id="btn-update" onclick="doUpdate()">🔄 Actualizar resultados</button>
   <span id="update-msg">—</span>
-  <button onclick="openApiKey()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px" title="Configurar API Key">⚙️</button>
 </div>
 
 <!-- TABS -->
@@ -828,78 +827,38 @@ function saveApiKey() {
 // ACTUALIZACIÓN VÍA API
 // ═══════════════════════════════════════════════════════════
 async function doUpdate() {
-  if (!state.apiKey) {
-    openApiKey();
-    return;
-  }
+  const BIN_ID = "6a2d2090da38895dfeb9750a";
+  const MASTER_KEY = "$2a$10$2Y9gS7sOIARKbtHusrv.B.gSVjDbAB.ggWQ4GqafsJc24MRrjodrG";
   const btn = document.getElementById("btn-update");
   const msg = document.getElementById("update-msg");
-  btn.disabled = true; btn.textContent = "⟳ Consultando…";
-  msg.textContent = "Conectando con API…"; msg.className = "";
-
-  const today = new Date().toISOString().slice(0,10);
-  const prompt = `Mundial FIFA 2026. Hoy es ${today}. Lista todos los partidos ya jugados con resultado confirmado. Responde SOLO con JSON, sin texto adicional:\n{"results":[{"home":"México","away":"Sudáfrica","sh":2,"sa":0}]}`;
-
+  btn.disabled = true; btn.textContent = "⟳ Leyendo…";
+  msg.textContent = "Consultando resultados…"; msg.className = "";
   try {
-    let resp;
-    try {
-      resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": state.apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-calls": "true"
-        },
-        body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 1000,
-          messages: [{ role:"user", content: prompt }],
-        })
-      });
-    } catch(networkErr) {
-      // Network-level error (CORS, no internet, DNS...)
-      showDiag("❌ Error de red", `No se pudo conectar con api.anthropic.com\n\n${networkErr.message}\n\nPosibles causas:\n• La API key no tiene el formato correcto (debe empezar por sk-ant-)\n• Sin conexión a internet\n• CORS bloqueado por el navegador`);
-      throw networkErr;
-    }
-
-    const rawText = await resp.text();
-
+    const resp = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      headers: {
+        "X-Master-Key": MASTER_KEY,
+        "X-Bin-Meta": "false"
+      }
+    });
     if (!resp.ok) {
-      let errMsg = `HTTP ${resp.status}`;
-      try { errMsg = JSON.parse(rawText)?.error?.message || errMsg; } catch{}
-      showDiag(`❌ Error API (${resp.status})`, rawText);
-      throw new Error(errMsg);
+      const txt = await resp.text().catch(()=>"");
+      throw new Error(`HTTP ${resp.status} · ${txt.slice(0,80)}`);
     }
-
-    const data = JSON.parse(rawText);
-    const textBlock = data.content?.find(b => b.type === "text");
-    if (!textBlock?.text) {
-      showDiag("❌ Respuesta inesperada", JSON.stringify(data, null, 2));
-      throw new Error("Sin bloque de texto en la respuesta");
-    }
-
-    let json = textBlock.text.trim().replace(/^```[a-z]*\n?/,"").replace(/\n?```$/,"").trim();
-    const jsonMatch = json.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      showDiag("❌ JSON no encontrado", textBlock.text);
-      throw new Error("No se encontró JSON válido");
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    if (!Array.isArray(parsed.results)) throw new Error("Formato inesperado");
-
-    parsed.results.forEach(r => {
-      const m = state.matches.find(x => x.h===r.home && x.a===r.away);
-      if (m) { m.sh=r.sh; m.sa=r.sa; m.done=true; }
+    const data = await resp.json();
+    // JSONbin with X-Bin-Meta:false returns the record directly
+    const record = data.record || data;
+    const results = record.results;
+    if (!Array.isArray(results)) throw new Error("Sin array results en el bin");
+    results.forEach(r => {
+      const m = state.matches.find(x => x.h === r.home && x.a === r.away);
+      if (m) { m.sh = r.sh; m.sa = r.sa; m.done = true; }
     });
     persist(); renderAll();
     const now = new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
-    msg.textContent = `✓ ${parsed.results.length} resultado${parsed.results.length!==1?"s":""} · ${now}`;
+    msg.textContent = `✓ ${results.length} partidos · ${record.updated||""} · ${now}`;
     msg.className = "ok";
-
   } catch(e) {
-    if (!e._shown) msg.textContent = `⚠ ${e.message}`; msg.className = "err";
+    msg.textContent = `⚠ ${e.message}`; msg.className = "err";
   } finally {
     btn.disabled = false; btn.textContent = "🔄 Actualizar resultados";
   }
