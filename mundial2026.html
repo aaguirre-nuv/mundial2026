@@ -837,46 +837,69 @@ async function doUpdate() {
   const btn = document.getElementById("btn-update");
   const msg = document.getElementById("update-msg");
   btn.disabled = true; btn.textContent = "⟳ Consultando…";
-  msg.textContent = "Buscando resultados en línea…"; msg.className = "";
+  msg.textContent = "Consultando resultados…"; msg.className = "";
 
   const teamNames = Object.values(GROUPS_DEF).flat().join(", ");
-  const prompt = `Eres un asistente de resultados del Mundial FIFA 2026. La fecha de hoy es ${new Date().toISOString().slice(0,10)}.
+  const today = new Date().toISOString().slice(0,10);
+  const prompt = `Eres un asistente de resultados del Mundial FIFA 2026. Hoy es ${today}.
 
-Devuelve ÚNICAMENTE un JSON válido sin markdown ni texto adicional, con este formato:
-{"results":[{"home":"México","away":"Sudáfrica","sh":2,"sa":0}],"updatedAt":"2026-06-12"}
+Devuelve ÚNICAMENTE un objeto JSON válido, sin markdown, sin texto adicional, con este formato exacto:
+{"results":[{"home":"México","away":"Sudáfrica","sh":2,"sa":0}],"updatedAt":"${today}"}
 
-Solo incluye partidos YA JUGADOS con resultado confirmado. Usa exactamente estos nombres: ${teamNames}`;
+Incluye SOLO partidos ya jugados con resultado oficial confirmado a fecha de hoy.
+Nombres de equipos exactos: ${teamNames}`;
 
   try {
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key":state.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-calls":"true"},
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": state.apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-calls": "true"
+      },
       body: JSON.stringify({
-        model:"claude-sonnet-4-6", max_tokens:1000,
-        tools:[{type:"web_search_20250305",name:"web_search"}],
-        messages:[{role:"user",content:prompt}],
+        model: "claude-sonnet-4-6",
+        max_tokens: 2000,
+        messages: [{ role:"user", content: prompt }],
       })
     });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      const errMsg = errBody?.error?.message || `HTTP ${resp.status}`;
+      throw new Error(errMsg);
+    }
+
     const data = await resp.json();
-    const textBlock = data.content?.find(b=>b.type==="text");
-    if (!textBlock) throw new Error("Sin respuesta");
-    let json = textBlock.text.trim().replace(/```json|```/g,"").trim();
+
+    // Find the text block — could be anywhere in content array
+    const textBlock = data.content?.find(b => b.type === "text");
+    if (!textBlock?.text) throw new Error("Respuesta vacía del modelo");
+
+    // Strip any accidental markdown fences
+    let json = textBlock.text.trim().replace(/^```[a-z]*\n?/,"").replace(/\n?```$/,"").trim();
+
+    // Sometimes the model wraps in extra text — try to extract JSON object
+    const jsonMatch = json.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No se encontró JSON en la respuesta");
+    json = jsonMatch[0];
+
     const parsed = JSON.parse(json);
     if (!Array.isArray(parsed.results)) throw new Error("Formato inesperado");
 
-    let updated = 0;
     parsed.results.forEach(r => {
-      const m = state.matches.find(x=>x.h===r.home&&x.a===r.away);
-      if (m && (m.sh!==r.sh||m.sa!==r.sa)) { m.sh=r.sh; m.sa=r.sa; m.done=true; updated++; }
+      const m = state.matches.find(x => x.h===r.home && x.a===r.away);
+      if (m) { m.sh=r.sh; m.sa=r.sa; m.done=true; }
     });
     persist(); renderAll();
     const now = new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
-    msg.textContent = `✓ ${parsed.results.length} partidos · actualizado ${now}`; msg.className="ok";
+    msg.textContent = `✓ ${parsed.results.length} resultado${parsed.results.length!==1?"s":""} · ${now}`;
+    msg.className = "ok";
   } catch(e) {
-    msg.textContent = `⚠ Error: ${e.message}`; msg.className="err";
+    msg.textContent = `⚠ ${e.message}`; msg.className = "err";
   } finally {
-    btn.disabled=false; btn.textContent="🔄 Actualizar resultados";
+    btn.disabled = false; btn.textContent = "🔄 Actualizar resultados";
   }
 }
 
