@@ -106,6 +106,7 @@
   }
   .chip.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
   .chip.fav-chip.active { background: var(--fav); color: #fff; border-color: var(--fav); }
+  .chip.watch-chip.active { background: #f0d060; color: var(--bg); border-color: #f0d060; }
 
   /* ── MATCH ROW ── */
   .match-row {
@@ -229,6 +230,11 @@
 
   /* ── EMPTY STATE ── */
   .empty { color: var(--muted); font-size: 12px; text-align: center; padding: 24px 0; }
+
+  /* ── WATCHLIST ── */
+  .match-row.watchlisted { border-left-color: #f0d060 !important; background: rgba(240,208,96,.08) !important; }
+  .watch-btn { background:transparent; border:none; font-size:16px; cursor:pointer; padding:2px 4px; opacity:.35; transition:opacity .15s, transform .15s; line-height:1; }
+  .watch-btn.on { opacity:1; transform:scale(1.2); }
 
   /* ── FOOTER ── */
   #footer { text-align: center; font-size: 10px; color: rgba(90,120,152,.4); padding: 12px; }
@@ -564,8 +570,8 @@ const MATCHES_BASE = [
 // ═══════════════════════════════════════════════════════════
 // ESTADO
 // ═══════════════════════════════════════════════════════════
-const SK = "mundial2026_v5";
-let state = { matches: JSON.parse(JSON.stringify(MATCHES_BASE)), favorites: [], apiKey: "" };
+const SK = "mundial2026_v6";
+let state = { matches: JSON.parse(JSON.stringify(MATCHES_BASE)), favorites: [], watchlist: [], apiKey: "" };
 
 function loadState() {
   try {
@@ -576,6 +582,7 @@ function loadState() {
       (s.matches||[]).forEach(m => saved[m.id] = m);
       state.matches = MATCHES_BASE.map(m => saved[m.id] ? {...m,...saved[m.id]} : m);
       state.favorites = s.favorites || [];
+      state.watchlist = s.watchlist || [];
       state.apiKey = s.apiKey || "";
     }
   } catch(e) {}
@@ -643,7 +650,8 @@ function updateBadges() {
 // ═══════════════════════════════════════════════════════════
 function matchRowHTML(m) {
   const isFav = state.favorites.includes(m.h)||state.favorites.includes(m.a);
-  const cls = `match-row${m.done?" done":""}${isFav?" favmatch":""}`;
+  const isWatch = state.watchlist.includes(m.id);
+  const cls = `match-row${m.done?" done":""}${isFav?" favmatch":""}${isWatch?" watchlisted":""}`;
   const scoreOrVs = m.done
     ? `<span class="score-box">${m.sh}–${m.sa}</span>`
     : `<span class="vs-sep">vs</span>`;
@@ -663,6 +671,7 @@ function matchRowHTML(m) {
         ${scoreOrVs}
         <span class="team-name">${f(m.a)}</span>
         <div class="match-actions">
+          <button class="watch-btn${isWatch?" on":""}" onclick="toggleWatch(${m.id})" title="Marcar para ver">⭐</button>
           <button class="action-btn edit" onclick="openEdit(${m.id})">✏️</button>
           ${delBtn}
         </div>
@@ -688,18 +697,23 @@ function renderDashboard() {
 // ═══════════════════════════════════════════════════════════
 let calFilter = "FAV";
 function renderCalendar() {
-  const groups = ["FAV","ALL",...Object.keys(GROUPS_DEF)];
+  const groups = ["WATCH","FAV","ALL",...Object.keys(GROUPS_DEF)];
   document.getElementById("cal-chips").innerHTML = groups.map(g => {
-    const isFav = g==="FAV";
-    const lbl = g==="FAV"?"❤️ Favs":g==="ALL"?"Todos":`Gr.${g}`;
-    const active = calFilter===g ? " active"+(isFav?" fav-chip":"") : "";
+    const isWatch = g==="WATCH", isFav = g==="FAV";
+    const lbl = g==="WATCH"?"⭐ Ver":g==="FAV"?"❤️ Favs":g==="ALL"?"Todos":`Gr.${g}`;
+    const active = calFilter===g ? ` active${isWatch?" watch-chip":isFav?" fav-chip":""}` : "";
     return `<button class="chip${active}" onclick="setCalFilter('${g}')">${lbl}</button>`;
   }).join("");
 
   const sorted = (arr) => [...arr].sort((a,b) => sortKey(a).localeCompare(sortKey(b)));
 
   let list;
-  if (calFilter==="FAV") {
+  if (calFilter==="WATCH") {
+    if (state.watchlist.length===0)
+      list = '<div class="empty">Sin partidos marcados.<br>Pulsa ⭐ en cualquier partido para marcarlo.</div>';
+    else
+      list = sorted(state.matches.filter(m=>state.watchlist.includes(m.id))).map(matchRowHTML).join("");
+  } else if (calFilter==="FAV") {
     if (state.favorites.length===0)
       list = '<div class="empty">Sin favoritos aún.<br>Pulsa ❤️ Favoritos para añadir equipos.</div>';
     else
@@ -824,6 +838,13 @@ function openFavModal() {
   document.getElementById("fav-modal").classList.add("open");
 }
 function closeFavModal() { document.getElementById("fav-modal").classList.remove("open"); persist(); renderAll(); }
+function toggleWatch(id) {
+  const idx = state.watchlist.indexOf(id);
+  if (idx >= 0) state.watchlist.splice(idx, 1);
+  else state.watchlist.push(id);
+  persist(); renderAll();
+}
+
 function toggleFav(team, btn) {
   const idx = state.favorites.indexOf(team);
   if (idx>=0) { state.favorites.splice(idx,1); btn.classList.remove("selected"); btn.innerHTML=`🤍 ${f(team)}`; }
