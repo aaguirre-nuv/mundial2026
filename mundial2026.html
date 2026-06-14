@@ -690,7 +690,7 @@ function matchRowHTML(m) {
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════
 function renderDashboard() {
-  const recent = [...state.matches].filter(m=>m.done).sort((a,b)=>sortKey(b).localeCompare(sortKey(a))).slice(0,6);
+  const recent = [...state.matches].filter(m=>m.done).sort((a,b)=>sortKey(b).localeCompare(sortKey(a))).slice(0,3);
   const upcoming = [...state.matches].filter(m=>!m.done).sort((a,b)=>sortKey(a).localeCompare(sortKey(b))).slice(0,8);
   document.getElementById("dash-recent").innerHTML =
     recent.length ? recent.map(matchRowHTML).join("") : '<div class="empty">Aún sin resultados</div>';
