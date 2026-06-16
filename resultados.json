@@ -1,13 +1,21 @@
 {
-  "updated": "2026-06-14",
+  "updated": "2026-06-16",
   "results": [
-    { "home": "México",        "away": "Sudáfrica",    "sh": 2, "sa": 0 },
-    { "home": "Corea del Sur", "away": "Rep. Checa",   "sh": 2, "sa": 1 },
-    { "home": "Canadá",        "away": "Bosnia-Herz.", "sh": 1, "sa": 1 },
-    { "home": "EE.UU.",        "away": "Paraguay",     "sh": 4, "sa": 1 },
-    { "home": "Qatar",         "away": "Suiza",        "sh": 1, "sa": 1 },
-    { "home": "Brasil",        "away": "Marruecos",    "sh": 1, "sa": 1 },
-    { "home": "Haití",         "away": "Escocia",      "sh": 0, "sa": 1 },
-    { "home": "Australia",     "away": "Turquía",      "sh": 2, "sa": 0 }
+    { "home": "México",         "away": "Sudáfrica",    "sh": 2, "sa": 0 },
+    { "home": "Corea del Sur",  "away": "Rep. Checa",   "sh": 2, "sa": 1 },
+    { "home": "Canadá",         "away": "Bosnia-Herz.", "sh": 1, "sa": 1 },
+    { "home": "EE.UU.",         "away": "Paraguay",     "sh": 4, "sa": 1 },
+    { "home": "Qatar",          "away": "Suiza",        "sh": 1, "sa": 1 },
+    { "home": "Brasil",         "away": "Marruecos",    "sh": 1, "sa": 1 },
+    { "home": "Haití",          "away": "Escocia",      "sh": 0, "sa": 1 },
+    { "home": "Australia",      "away": "Turquía",      "sh": 2, "sa": 0 },
+    { "home": "Alemania",       "away": "Curazao",      "sh": 7, "sa": 1 },
+    { "home": "Países Bajos",   "away": "Japón",        "sh": 2, "sa": 2 },
+    { "home": "Costa de Marfil","away": "Ecuador",      "sh": 1, "sa": 0 },
+    { "home": "Suecia",         "away": "Túnez",        "sh": 5, "sa": 1 },
+    { "home": "España",         "away": "Cabo Verde",   "sh": 0, "sa": 0 },
+    { "home": "Bélgica",        "away": "Egipto",       "sh": 1, "sa": 1 },
+    { "home": "Arabia Saudí",   "away": "Uruguay",      "sh": 1, "sa": 1 },
+    { "home": "Irán",           "away": "Nueva Zelanda","sh": 2, "sa": 2 }
   ]
 }
