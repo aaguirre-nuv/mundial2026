@@ -1084,21 +1084,8 @@ function getThirds(groups, standings) {
 function resolveSlot(slot, standings, matchId) {
   if (slot === "3rd") {
     const grps = (matchId && THIRD_GROUPS[matchId]) || [];
-    // Solo mostrar si todos los grupos han jugado al menos 1 partido
-    const minPlayed = grps.length > 0 && grps.every(g =>
-      state.matches.filter(m => m.g===g && m.done).length >= 1
-    );
-    if (!minPlayed) return { flag:"🔮", name:`3º (${grps.join("/")})`, status:"third", team:null };
-    const thirds = getThirds(grps, standings);
-    if (!thirds[0]) return { flag:"🔮", name:`3º (${grps.join("/")})`, status:"third", team:null };
-    const best = thirds[0];
-    const allDone = grps.every(g => state.matches.filter(m=>m.g===g&&m.done).length===6);
-    return {
-      flag: FLAG[best.t]||"🏳️",
-      name: `${ABBR[best.t]||best.t.slice(0,3)} 3º${best.grp}`,
-      status: allDone ? "sure" : "third",
-      team: best.t
-    };
+    const label = grps.length > 0 ? `3º (${grps.join("/")})` : "Mejor 3º";
+    return { flag:"🔮", name:label, status:"third", team:null };
   }
   const type = slot[0], grp = slot[1];
   const rows = standings[grp] || [];
