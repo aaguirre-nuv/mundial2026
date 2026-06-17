@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-16",
+  "updated": "2026-06-17",
   "results": [
     { "home": "México",         "away": "Sudáfrica",    "sh": 2, "sa": 0 },
     { "home": "Corea del Sur",  "away": "Rep. Checa",   "sh": 2, "sa": 1 },
@@ -16,6 +16,9 @@
     { "home": "España",         "away": "Cabo Verde",   "sh": 0, "sa": 0 },
     { "home": "Bélgica",        "away": "Egipto",       "sh": 1, "sa": 1 },
     { "home": "Arabia Saudí",   "away": "Uruguay",      "sh": 1, "sa": 1 },
-    { "home": "Irán",           "away": "Nueva Zelanda","sh": 2, "sa": 2 }
+    { "home": "Irán",           "away": "Nueva Zelanda","sh": 2, "sa": 2 },
+    { "home": "Francia",        "away": "Senegal",      "sh": 3, "sa": 1 },
+    { "home": "Irak",           "away": "Noruega",      "sh": 1, "sa": 4 },
+    { "home": "Argentina",      "away": "Argelia",      "sh": 3, "sa": 0 }
   ]
 }

@@ -120,7 +120,7 @@
   .match-row.done { background: rgba(0,48,135,.14); border-left-color: var(--gold); }
   .match-row.favmatch { border-left-color: var(--fav); }
   .match-row-inner { display: flex; align-items: center; gap: 6px; }
-  .match-date { min-width: 52px; }
+  .match-date { min-width: 68px; }
   .match-date .d { font-size: 11px; color: var(--gold); font-weight: 700; }
   .match-date .g { font-size: 11px; color: var(--muted); }
   .team-name { flex: 1; font-size: 14px; color: var(--text); }
@@ -635,6 +635,11 @@ function fmtDate(d) {
   const dt = new Date(d+"T12:00:00");
   return dt.toLocaleDateString("es-ES",{day:"2-digit",month:"short"});
 }
+function fmtDay(d) {
+  const dt = new Date(d+"T12:00:00");
+  const days = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+  return days[dt.getDay()];
+}
 // Sort key: "2026-06-15T18:00" — consistent chronological sort including time
 function sortKey(m) { return m.date + "T" + (m.t||"00:00"); }
 
@@ -669,7 +674,7 @@ function matchRowHTML(m) {
     <div class="${cls}" id="mr-${m.id}">
       <div class="match-row-inner">
         <div class="match-date">
-          <div class="d">${fmtDate(m.date)}</div>
+          <div class="d">${fmtDay(m.date)} ${fmtDate(m.date)}</div>
           <div class="g" style="color:var(--gold);font-weight:600">${timeStr}</div>
           <div class="g">Gr.${m.g}</div>
         </div>
@@ -1061,7 +1066,20 @@ function teamRow(r, showFav) {
 
 function matchCard(matchId, standings, isFinal) {
   const teams = getMatchTeams(matchId, standings);
-  const date = ROUND_DATES[matchId] || "";
+  const rawDate = ROUND_DATES[matchId] || "";
+  // Add day of week — parse "28 Jun 21:00" → look up in a date map
+  const BRACKET_DAY = {
+    73:"Dom", 74:"Lun", 75:"Lun", 76:"Mar",
+    77:"Mar", 78:"Mar", 79:"Mié", 80:"Mié",
+    81:"Mié", 82:"Jue", 83:"Jue", 84:"Vie",
+    85:"Vie", 86:"Vie", 87:"Sáb", 88:"Sáb",
+    89:"Sáb", 90:"Sáb", 91:"Dom", 92:"Lun",
+    93:"Lun", 94:"Mar", 95:"Mar", 96:"Mar",
+    97:"Jue", 98:"Vie", 99:"Sáb", 100:"Dom",
+    101:"Mar", 102:"Mié", 103:"Dom",
+  };
+  const day = BRACKET_DAY[matchId] || "";
+  const date = day ? `${day} ${rawDate}` : rawDate;
   const liveMatch = state.matches.find(m => m.id === matchId);
   const hasFav = teams.some(r => r.team && state.favorites.includes(r.team));
   const cls = isFinal ? "bk-match final-m" : `bk-match${hasFav?" fav":""}`;
