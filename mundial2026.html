@@ -1088,9 +1088,9 @@ function resolveSlot(slot, standings, matchId) {
     const minPlayed = grps.length > 0 && grps.every(g =>
       state.matches.filter(m => m.g===g && m.done).length >= 1
     );
-    if (!minPlayed) return { flag:"🔮", name:"Mejor 3º", status:"third", team:null };
+    if (!minPlayed) return { flag:"🔮", name:`3º (${grps.join("/")})`, status:"third", team:null };
     const thirds = getThirds(grps, standings);
-    if (!thirds[0]) return { flag:"🔮", name:"Mejor 3º", status:"third", team:null };
+    if (!thirds[0]) return { flag:"🔮", name:`3º (${grps.join("/")})`, status:"third", team:null };
     const best = thirds[0];
     const allDone = grps.every(g => state.matches.filter(m=>m.g===g&&m.done).length===6);
     return {
@@ -1353,7 +1353,6 @@ function renderClasif() {
     </div>`;
   }).join("");
 
-  // ── Tabla de mejores terceros ──────────────────────────────────────────
   const allThirds = Object.keys(GROUPS_DEF).map(g => {
     const rows = standings[g] || [];
     return rows[2] ? { ...rows[2], grp:g } : null;
@@ -1369,25 +1368,27 @@ function renderClasif() {
         🔮 Mejores terceros — clasifican los 8 primeros
       </div>
       <div style="background:rgba(255,255,255,.03);border:1px solid rgba(160,110,240,.25);border-radius:10px;overflow:hidden">
-        <div style="display:grid;grid-template-columns:24px 1fr 26px 26px 26px 26px 26px 32px;padding:5px 10px;font-size:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.05)">
-          <span>#</span><span>Equipo</span><span style="text-align:center">PJ</span><span style="text-align:center">GF</span><span style="text-align:center">GC</span><span style="text-align:center">DG</span><span style="text-align:center">Gr</span><span style="text-align:center">Pts</span>
+        <div style="display:grid;grid-template-columns:24px 1fr 22px 22px 22px 22px 32px;padding:5px 10px;font-size:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.05)">
+          <span>#</span><span>Equipo</span><span style="text-align:center">PJ</span><span style="text-align:center">GF</span><span style="text-align:center">GC</span><span style="text-align:center">DG</span><span style="text-align:center">Pts</span>
         </div>
         ${allThirds.map((row, i) => {
           const isCut = i === 7;
           const passes = i < 8;
           const isFav = state.favorites.includes(row.t);
-          const cutLine = isCut ? `<div style="height:2px;background:linear-gradient(90deg,rgba(200,16,46,.6),transparent);margin:0"></div>` : "";
+          const cutLine = isCut ? `<div style="height:2px;background:linear-gradient(90deg,rgba(200,16,46,.7),transparent);"></div>` : "";
           const bg = passes ? "rgba(160,110,240,.06)" : "rgba(0,0,0,.1)";
           const numColor = passes ? "rgba(200,165,255,.8)" : "rgba(90,120,152,.5)";
           const dg = row.gf - row.ga;
-          return `${cutLine}<div style="display:grid;grid-template-columns:24px 1fr 26px 26px 26px 26px 26px 32px;padding:7px 10px;font-size:12px;background:${bg};${isFav?"border-left:2px solid var(--fav)":""}">
+          return `${cutLine}<div style="display:grid;grid-template-columns:24px 1fr 22px 22px 22px 22px 32px;padding:7px 10px;font-size:12px;background:${bg};${isFav?"border-left:2px solid var(--fav)":""}border-bottom:1px solid rgba(255,255,255,.04)">
             <span style="color:${numColor};font-family:'Barlow Condensed',sans-serif;font-weight:700">${i+1}</span>
-            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;${isFav?"color:var(--fav)":passes?"color:#eaf2ff":"color:rgba(90,120,152,.6)"}">${FLAG[row.t]||""} ${ABBR[row.t]||row.t.slice(0,3)}</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;${isFav?"color:var(--fav)":passes?"color:#eaf2ff":"color:rgba(90,120,152,.6)"}">
+              ${FLAG[row.t]||""} ${ABBR[row.t]||row.t.slice(0,3)}
+              <span style="font-size:9px;color:rgba(160,110,240,.7);margin-left:3px">Gr.${row.grp}</span>
+            </span>
             <span style="text-align:center;color:var(--muted)">${row.p}</span>
             <span style="text-align:center">${row.gf}</span>
             <span style="text-align:center">${row.ga}</span>
             <span style="text-align:center;color:${dg>0?"#5edb7a":dg<0?"#ff6b8a":"var(--muted)"}">${dg>0?"+":""}${dg}</span>
-            <span style="text-align:center;color:var(--muted)">${row.grp}</span>
             <span style="text-align:center;font-weight:800;color:${passes?"rgba(200,165,255,.9)":"rgba(90,120,152,.5)"}">${row.pts}</span>
           </div>`;
         }).join("")}
