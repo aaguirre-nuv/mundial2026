@@ -236,6 +236,31 @@
   .watch-btn { background:transparent; border:none; font-size:16px; cursor:pointer; padding:2px 4px; opacity:.35; transition:opacity .15s, transform .15s; line-height:1; }
   .watch-btn.on { opacity:1; transform:scale(1.2); }
 
+  /* ── SIMULATOR ── */
+  .sim-match { background:rgba(255,255,255,.04); border-radius:10px; padding:10px 12px; margin-bottom:10px; }
+  .sim-match-teams { display:flex; align-items:center; gap:6px; margin-bottom:8px; font-size:13px; font-weight:600; }
+  .sim-match-teams .sep { color:var(--muted); font-size:11px; }
+  .sim-btns { display:flex; gap:6px; }
+  .sim-btn {
+    flex:1; padding:7px 4px; border-radius:7px; border:1px solid rgba(255,255,255,.1);
+    background:transparent; color:var(--muted); font-size:11px; font-weight:600;
+    cursor:pointer; text-align:center; transition:all .15s; font-family:'Inter',sans-serif;
+  }
+  .sim-btn.win  { border-color:rgba(94,219,122,.5); background:rgba(94,219,122,.12); color:#5edb7a; }
+  .sim-btn.draw { border-color:rgba(240,208,96,.4); background:rgba(240,208,96,.1);  color:var(--gold); }
+  .sim-btn.lose { border-color:rgba(200,16,46,.4);  background:rgba(200,16,46,.1);   color:#ff6b8a; }
+  .sim-result-table { background:rgba(255,255,255,.04); border-radius:10px; overflow:hidden; margin-top:14px; }
+  .sim-result-row {
+    display:grid; grid-template-columns:1fr 26px 22px 22px 22px 26px 26px 32px;
+    padding:8px 12px; font-size:13px; border-bottom:1px solid rgba(255,255,255,.05);
+  }
+  .sim-result-row:last-child { border-bottom:none; }
+  .sim-result-row.pos1 { background:rgba(94,219,122,.1); border-left:3px solid #5edb7a; }
+  .sim-result-row.pos2 { background:rgba(240,208,96,.08); border-left:3px solid var(--gold); }
+  .sim-result-row.pos3 { background:rgba(160,110,240,.08); border-left:3px solid rgba(160,110,240,.7); }
+  .sim-result-row.pos4 { opacity:.5; }
+  .sim-result-header { display:grid; grid-template-columns:1fr 26px 22px 22px 22px 26px 26px 32px; padding:5px 12px; font-size:10px; color:var(--muted); }
+
   /* ── FOOTER ── */
   #footer { text-align: center; font-size: 10px; color: rgba(90,120,152,.4); padding: 12px; }
   /* ── BRACKET — estilo llave vertical, tabs por ronda ── */
@@ -370,7 +395,10 @@ echo "CSS ok: $(wc -l < /tmp/bk_css.html) lines"</style>
 <div id="view-groups" class="view">
   <div class="group-selector" id="group-selector"></div>
   <div id="group-standings"></div>
-  <div class="sec-label">Partidos del grupo</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px">
+    <div class="sec-label" style="margin:0">Partidos del grupo</div>
+    <button onclick="openSimulator()" style="background:rgba(160,110,240,.15);border:1px solid rgba(160,110,240,.4);border-radius:8px;color:rgba(200,165,255,.9);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;font-family:'Inter',sans-serif">🔮 Simular</button>
+  </div>
   <div id="group-matches"></div>
 </div>
 
@@ -388,6 +416,17 @@ echo "CSS ok: $(wc -l < /tmp/bk_css.html) lines"</style>
 <!-- ══ VIEW: CLASIFICACIÓN ══ -->
 <div id="view-clasif" class="view">
   <div id="clasif-content"></div>
+</div>
+
+<!-- ══ MODAL: SIMULADOR ══ -->
+<div id="sim-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;align-items:flex-start;justify-content:center;padding:12px;overflow-y:auto">
+  <div class="modal-box" style="max-height:none;overflow:visible">
+    <div class="modal-title">
+      🔮 Simulador — Grupo <span id="sim-group-label"></span>
+      <button class="modal-close" onclick="closeSimulator()">✕</button>
+    </div>
+    <div id="sim-content"></div>
+  </div>
 </div>
 
 <!-- ── FAB ── -->
@@ -1276,6 +1315,121 @@ function renderClasif() {
       <span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:rgba(160,110,240,.5);border:1px solid rgba(160,110,240,.7);margin-right:3px;vertical-align:middle"></span>3º mejor</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${html}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIMULADOR DE GRUPO
+// ═══════════════════════════════════════════════════════════
+let simState = {}; // matchId → "h" (home wins) | "d" (draw) | "a" (away wins)
+
+function openSimulator() {
+  simState = {};
+  document.getElementById("sim-group-label").textContent = selGroup;
+  document.getElementById("sim-modal").style.display = "flex";
+  renderSimulator();
+}
+function closeSimulator() {
+  document.getElementById("sim-modal").style.display = "none";
+}
+
+function renderSimulator() {
+  const pending = state.matches.filter(m => m.g === selGroup && !m.done)
+    .sort((a,b) => sortKey(a).localeCompare(sortKey(b)));
+  const played  = state.matches.filter(m => m.g === selGroup && m.done);
+
+  if (pending.length === 0) {
+    document.getElementById("sim-content").innerHTML =
+      `<p style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Todos los partidos del grupo ya están jugados.</p>`;
+    return;
+  }
+
+  // Pending match controls
+  const matchControls = pending.map(m => {
+    const sel = simState[m.id] || null;
+    const btn = (val, lbl, cls) =>
+      `<button class="sim-btn${sel===val?" "+cls:""}" onclick="setSim(${m.id},'${val}')">${lbl}</button>`;
+    return `<div class="sim-match">
+      <div class="sim-match-teams">
+        <span>${f(m.h)}</span>
+        <span class="sep">${fmtDay(m.date)} ${fmtDate(m.date)} ${m.t||""}</span>
+        <span>${f(m.a)}</span>
+      </div>
+      <div class="sim-btns">
+        ${btn("h", `${FLAG[m.h]||"🏳️"} Gana ${ABBR[m.h]||m.h.slice(0,3)}`, "win")}
+        ${btn("d", "Empate", "draw")}
+        ${btn("a", `${FLAG[m.a]||"🏳️"} Gana ${ABBR[m.a]||m.a.slice(0,3)}`, "lose")}
+      </div>
+    </div>`;
+  }).join("");
+
+  // Compute simulated standings
+  const sim = {};
+  GROUPS_DEF[selGroup].forEach(t => {
+    sim[t] = { t, p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 };
+  });
+
+  // Real played matches
+  played.forEach(m => {
+    applyResult(sim, m.h, m.a, m.sh, m.sa);
+  });
+
+  // Simulated pending matches
+  pending.forEach(m => {
+    const r = simState[m.id];
+    if (!r) return;
+    if (r === "h") applyResult(sim, m.h, m.a, 1, 0);
+    else if (r === "d") applyResult(sim, m.h, m.a, 0, 0);
+    else if (r === "a") applyResult(sim, m.h, m.a, 0, 1);
+  });
+
+  const sorted = Object.values(sim).sort((a,b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    const gd = (b.gf-b.ga) - (a.gf-a.ga);
+    return gd !== 0 ? gd : b.gf - a.gf;
+  });
+
+  const posCls = ["pos1","pos2","pos3","pos4"];
+  const posLabel = ["🟢 1º","🟡 2º","🟣 3º","🔴 4º"];
+  const tableRows = sorted.map((row, i) => {
+    const isFav = state.favorites.includes(row.t);
+    return `<div class="sim-result-row ${posCls[i]}">
+      <span style="${isFav?"color:var(--fav);font-weight:700":""}">${posLabel[i]} ${FLAG[row.t]||""} ${ABBR[row.t]||row.t.slice(0,3)}</span>
+      <span style="text-align:center">${row.p}</span>
+      <span style="text-align:center;color:#5edb7a">${row.w}</span>
+      <span style="text-align:center">${row.d}</span>
+      <span style="text-align:center;color:#ff6b8a">${row.l}</span>
+      <span style="text-align:center">${row.gf}</span>
+      <span style="text-align:center">${row.ga}</span>
+      <span style="text-align:center;font-weight:800;color:var(--gold)">${row.pts}</span>
+    </div>`;
+  }).join("");
+
+  const allSet = pending.every(m => simState[m.id]);
+  const tableHeader = `<div class="sim-result-header"><span>Equipo</span><span style="text-align:center">PJ</span><span style="text-align:center">G</span><span style="text-align:center">E</span><span style="text-align:center">P</span><span style="text-align:center">GF</span><span style="text-align:center">GC</span><span style="text-align:center">Pts</span></div>`;
+
+  const table = `<div class="sim-result-table">
+    <div style="background:rgba(160,110,240,.1);padding:7px 12px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,165,255,.8);font-family:'Barlow Condensed',sans-serif">
+      ${allSet ? "Clasificación simulada" : "Clasificación parcial — selecciona todos los resultados"}
+    </div>
+    ${tableHeader}${tableRows}
+  </div>`;
+
+  document.getElementById("sim-content").innerHTML = matchControls + table;
+}
+
+function applyResult(sim, h, a, sh, sa) {
+  if (!sim[h] || !sim[a]) return;
+  sim[h].p++; sim[a].p++;
+  sim[h].gf += sh; sim[h].ga += sa;
+  sim[a].gf += sa; sim[a].ga += sh;
+  if (sh > sa)      { sim[h].w++; sim[h].pts += 3; sim[a].l++; }
+  else if (sh < sa) { sim[a].w++; sim[a].pts += 3; sim[h].l++; }
+  else              { sim[h].d++; sim[h].pts++; sim[a].d++; sim[a].pts++; }
+}
+
+function setSim(id, val) {
+  simState[id] = val;
+  renderSimulator();
 }
 
 </script>
