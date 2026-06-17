@@ -1058,17 +1058,62 @@ const ROUND_DATES = {
   103:"19 Jul 21:00",
 };
 
-function resolveSlot(slot, standings) {
-  if (slot === "3rd") return { flag:"🔮", name:"Mejor 3º", status:"third" };
+// ── Grupos de cada slot de 3º (oficial FIFA) ──────────────────────────────
+const THIRD_GROUPS = {
+  75:["A","B","C","D","F"],
+  78:["C","D","F","G","H"],
+  79:["C","E","F","H","I"],
+  80:["E","H","I","J","K"],
+  81:["A","E","H","I","J"],
+  82:["B","E","F","I","J"],
+  85:["E","F","G","I","J"],
+  87:["D","E","I","J","L"],
+};
+
+function getThirds(groups, standings) {
+  return groups.map(g => {
+    const rows = standings[g] || [];
+    return rows[2] ? { ...rows[2], grp:g } : null;
+  }).filter(Boolean).sort((a,b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    const gd = (b.gf-b.ga)-(a.gf-a.ga);
+    return gd!==0 ? gd : b.gf-a.gf;
+  });
+}
+
+function resolveSlot(slot, standings, matchId) {
+  if (slot === "3rd") {
+    const grps = (matchId && THIRD_GROUPS[matchId]) || [];
+    // Solo mostrar si todos los grupos han jugado al menos 1 partido
+    const minPlayed = grps.length > 0 && grps.every(g =>
+      state.matches.filter(m => m.g===g && m.done).length >= 1
+    );
+    if (!minPlayed) return { flag:"🔮", name:"Mejor 3º", status:"third", team:null };
+    const thirds = getThirds(grps, standings);
+    if (!thirds[0]) return { flag:"🔮", name:"Mejor 3º", status:"third", team:null };
+    const best = thirds[0];
+    const allDone = grps.every(g => state.matches.filter(m=>m.g===g&&m.done).length===6);
+    return {
+      flag: FLAG[best.t]||"🏳️",
+      name: `${ABBR[best.t]||best.t.slice(0,3)} 3º${best.grp}`,
+      status: allDone ? "sure" : "third",
+      team: best.t
+    };
+  }
   const type = slot[0], grp = slot[1];
   const rows = standings[grp] || [];
   const allDone = state.matches.filter(m => m.g===grp && m.done).length === 6;
   const idx = type==="1" ? 0 : 1;
-  if (!rows[idx]) return { flag:"", name:`${type}º Gr.${grp}`, status:"empty" };
+  if (!rows[idx]) return { flag:"", name:`${type}º Gr.${grp}`, status:"empty", team:null };
   const team = rows[idx].t;
-  const status = allDone ? "sure" : (type==="1" ? "prov" : "second");
-  return { flag:FLAG[team]||"🏳️", name:ABBR[team]||team.slice(0,3).toUpperCase(), status, team };
+  return {
+    flag: FLAG[team]||"🏳️",
+    name: ABBR[team]||team.slice(0,3).toUpperCase(),
+    status: allDone ? "sure" : (type==="1" ? "prov" : "second"),
+    team
+  };
 }
+
 
 // Gets the two teams that play in matchId (looks up bracket tree recursively)
 function getMatchTeams(matchId, standings) {
@@ -1079,7 +1124,7 @@ function getMatchTeams(matchId, standings) {
   ];
   // Leaf: slots are ["2A","1B"] etc
   if (typeof slots[0] === "string") {
-    return slots.map(s => resolveSlot(s, standings));
+    return slots.map(s => resolveSlot(s, standings, matchId));
   }
   // Inner node: slots are match IDs — get winner of each
   return slots.map(childId => {
@@ -1308,13 +1353,57 @@ function renderClasif() {
     </div>`;
   }).join("");
 
+  // ── Tabla de mejores terceros ──────────────────────────────────────────
+  const allThirds = Object.keys(GROUPS_DEF).map(g => {
+    const rows = standings[g] || [];
+    return rows[2] ? { ...rows[2], grp:g } : null;
+  }).filter(Boolean).sort((a,b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    const gd = (b.gf-b.ga)-(a.gf-a.ga);
+    return gd!==0 ? gd : b.gf-a.gf;
+  });
+
+  const thirdsHTML = allThirds.length === 0 ? "" : `
+    <div style="margin-top:12px;grid-column:1/-1">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(160,110,240,.9);font-weight:700;margin-bottom:8px">
+        🔮 Mejores terceros — clasifican los 8 primeros
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(160,110,240,.25);border-radius:10px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:24px 1fr 26px 26px 26px 26px 26px 32px;padding:5px 10px;font-size:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.05)">
+          <span>#</span><span>Equipo</span><span style="text-align:center">PJ</span><span style="text-align:center">GF</span><span style="text-align:center">GC</span><span style="text-align:center">DG</span><span style="text-align:center">Gr</span><span style="text-align:center">Pts</span>
+        </div>
+        ${allThirds.map((row, i) => {
+          const isCut = i === 7;
+          const passes = i < 8;
+          const isFav = state.favorites.includes(row.t);
+          const cutLine = isCut ? `<div style="height:2px;background:linear-gradient(90deg,rgba(200,16,46,.6),transparent);margin:0"></div>` : "";
+          const bg = passes ? "rgba(160,110,240,.06)" : "rgba(0,0,0,.1)";
+          const numColor = passes ? "rgba(200,165,255,.8)" : "rgba(90,120,152,.5)";
+          const dg = row.gf - row.ga;
+          return `${cutLine}<div style="display:grid;grid-template-columns:24px 1fr 26px 26px 26px 26px 26px 32px;padding:7px 10px;font-size:12px;background:${bg};${isFav?"border-left:2px solid var(--fav)":""}">
+            <span style="color:${numColor};font-family:'Barlow Condensed',sans-serif;font-weight:700">${i+1}</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;${isFav?"color:var(--fav)":passes?"color:#eaf2ff":"color:rgba(90,120,152,.6)"}">${FLAG[row.t]||""} ${ABBR[row.t]||row.t.slice(0,3)}</span>
+            <span style="text-align:center;color:var(--muted)">${row.p}</span>
+            <span style="text-align:center">${row.gf}</span>
+            <span style="text-align:center">${row.ga}</span>
+            <span style="text-align:center;color:${dg>0?"#5edb7a":dg<0?"#ff6b8a":"var(--muted)"}">${dg>0?"+":""}${dg}</span>
+            <span style="text-align:center;color:var(--muted)">${row.grp}</span>
+            <span style="text-align:center;font-weight:800;color:${passes?"rgba(200,165,255,.9)":"rgba(90,120,152,.5)"}">${row.pts}</span>
+          </div>`;
+        }).join("")}
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">
+        La línea roja marca el corte · Se define el 27 jun cuando terminen todos los grupos
+      </div>
+    </div>`;
+
   document.getElementById("clasif-content").innerHTML = `
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:10px;color:var(--muted);align-items:center">
       <span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-right:3px;vertical-align:middle"></span>Clasificado</span>
       <span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:rgba(240,208,96,.45);border:1px solid rgba(240,208,96,.7);margin-right:3px;vertical-align:middle"></span>Provisional</span>
       <span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:rgba(160,110,240,.5);border:1px solid rgba(160,110,240,.7);margin-right:3px;vertical-align:middle"></span>3º mejor</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${html}</div>`;
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${html}${thirdsHTML}</div>`;
 }
 
 // ═══════════════════════════════════════════════════════════
