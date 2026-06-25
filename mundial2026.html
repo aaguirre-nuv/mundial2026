@@ -284,8 +284,8 @@
   .bk-tab.active { background:var(--gold); color:var(--bg); }
 
   /* Bracket pair: two match cards + brace + result card */
-  .bk-pair { display:flex; align-items:center; gap:0; margin-bottom:6px; }
-  .bk-matches { display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
+  .bk-pair { display:flex; align-items:stretch; gap:0; margin-bottom:6px; }
+  .bk-matches { display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; justify-content:center; }
 
   /* Single match card */
   .bk-match {
@@ -298,7 +298,7 @@
   /* Team row */
   .bk-row {
     display:flex; align-items:center; gap:6px;
-    padding:6px 9px; border-bottom:1px solid rgba(255,255,255,.05);
+    padding:4px 9px; border-bottom:1px solid rgba(255,255,255,.05);
   }
   .bk-row:last-of-type { border-bottom:none; }
   .bk-row.frow { background:rgba(255,107,138,.08); }
@@ -332,13 +332,13 @@
   /* Brace connector (llave ] ) */
   .bk-brace {
     width:14px; flex-shrink:0; align-self:stretch;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:stretch; justify-content:center;
     position:relative; margin:0 2px;
   }
-  .bk-brace svg { position:absolute; top:0; left:0; }
+  .bk-brace svg { display:block; width:14px; height:100%; }
 
   /* Result / next-round slot */
-  .bk-next { flex:1; min-width:0; }
+  .bk-next { flex:1; min-width:0; display:flex; align-items:center; }
   .bk-next-empty {
     background:rgba(255,255,255,.03); border:1px dashed rgba(255,255,255,.08);
     border-radius:8px; padding:10px 9px;
@@ -536,7 +536,7 @@ const MATCHES_BASE = [
   // ── GRUPO B ──
   {id:7, g:"B",date:"2026-06-12",t:"21:00",h:"Canadá",          a:"Bosnia-Herz.",   sh:null,sa:null,done:false,v:"Toronto"},
   {id:8, g:"B",date:"2026-06-13",t:"21:00",h:"Qatar",           a:"Suiza",          sh:null,sa:null,done:false,v:"San Francisco"},
-  {id:10,g:"B",date:"2026-06-19",t:"00:00",h:"Suiza",           a:"Bosnia-Herz.",   sh:null,sa:null,done:false,v:"Los Ángeles"},
+  {id:10,g:"B",date:"2026-06-18",t:"21:00",h:"Suiza",           a:"Bosnia-Herz.",   sh:null,sa:null,done:false,v:"Los Ángeles"},
   {id:9, g:"B",date:"2026-06-19",t:"00:00",h:"Canadá",          a:"Qatar",          sh:null,sa:null,done:false,v:"Vancouver"},
   {id:11,g:"B",date:"2026-06-24",t:"21:00",h:"Bosnia-Herz.",    a:"Qatar",          sh:null,sa:null,done:false,v:"Seattle"},
   {id:12,g:"B",date:"2026-06-24",t:"21:00",h:"Suiza",           a:"Canadá",         sh:null,sa:null,done:false,v:"Vancouver"},
@@ -559,22 +559,22 @@ const MATCHES_BASE = [
   {id:26,g:"E",date:"2026-06-15",t:"01:00",h:"Costa de Marfil", a:"Ecuador",        sh:null,sa:null,done:false,v:"Filadelfia"},
   {id:27,g:"E",date:"2026-06-20",t:"22:00",h:"Alemania",        a:"Costa de Marfil",sh:null,sa:null,done:false,v:"Toronto"},
   {id:28,g:"E",date:"2026-06-21",t:"02:00",h:"Ecuador",         a:"Curazao",        sh:null,sa:null,done:false,v:"Kansas City"},
-  {id:30,g:"E",date:"2026-06-25",t:"22:00",h:"Curazao",         a:"Costa de Marfil",sh:null,sa:null,done:false,v:"Filadelfia"},
   {id:29,g:"E",date:"2026-06-25",t:"22:00",h:"Ecuador",         a:"Alemania",       sh:null,sa:null,done:false,v:"Nueva York/NJ"},
+  {id:30,g:"E",date:"2026-06-25",t:"22:00",h:"Curazao",         a:"Costa de Marfil",sh:null,sa:null,done:false,v:"Filadelfia"},
   // ── GRUPO F ──
   {id:31,g:"F",date:"2026-06-14",t:"22:00",h:"Países Bajos",    a:"Japón",          sh:null,sa:null,done:false,v:"Dallas"},
   {id:32,g:"F",date:"2026-06-15",t:"04:00",h:"Suecia",          a:"Túnez",          sh:null,sa:null,done:false,v:"Monterrey"},
   {id:33,g:"F",date:"2026-06-20",t:"19:00",h:"Países Bajos",    a:"Suecia",         sh:null,sa:null,done:false,v:"Houston"},
   {id:34,g:"F",date:"2026-06-21",t:"06:00",h:"Túnez",           a:"Japón",          sh:null,sa:null,done:false,v:"Monterrey"},
-  {id:36,g:"F",date:"2026-06-26",t:"01:00",h:"Túnez",           a:"Países Bajos",   sh:null,sa:null,done:false,v:"Kansas City"},
   {id:35,g:"F",date:"2026-06-26",t:"01:00",h:"Japón",           a:"Suecia",         sh:null,sa:null,done:false,v:"Dallas"},
+  {id:36,g:"F",date:"2026-06-26",t:"01:00",h:"Túnez",           a:"Países Bajos",   sh:null,sa:null,done:false,v:"Kansas City"},
   // ── GRUPO G ──
   {id:37,g:"G",date:"2026-06-15",t:"21:00",h:"Bélgica",         a:"Egipto",         sh:null,sa:null,done:false,v:"Seattle"},
   {id:38,g:"G",date:"2026-06-16",t:"03:00",h:"Irán",            a:"Nueva Zelanda",  sh:null,sa:null,done:false,v:"Los Ángeles"},
   {id:39,g:"G",date:"2026-06-21",t:"21:00",h:"Bélgica",         a:"Irán",           sh:null,sa:null,done:false,v:"Los Ángeles"},
   {id:40,g:"G",date:"2026-06-22",t:"03:00",h:"Nueva Zelanda",   a:"Egipto",         sh:null,sa:null,done:false,v:"Vancouver"},
-  {id:42,g:"G",date:"2026-06-27",t:"05:00",h:"Nueva Zelanda",   a:"Bélgica",        sh:null,sa:null,done:false,v:"Seattle"},
   {id:41,g:"G",date:"2026-06-27",t:"05:00",h:"Egipto",          a:"Irán",           sh:null,sa:null,done:false,v:"Vancouver"},
+  {id:42,g:"G",date:"2026-06-27",t:"05:00",h:"Nueva Zelanda",   a:"Bélgica",        sh:null,sa:null,done:false,v:"Seattle"},
   // ── GRUPO H ──
   {id:43,g:"H",date:"2026-06-15",t:"18:00",h:"España",          a:"Cabo Verde",     sh:null,sa:null,done:false,v:"Atlanta"},
   {id:44,g:"H",date:"2026-06-16",t:"00:00",h:"Arabia Saudí",    a:"Uruguay",        sh:null,sa:null,done:false,v:"Miami"},
@@ -615,7 +615,7 @@ const MATCHES_BASE = [
 // ═══════════════════════════════════════════════════════════
 // ESTADO
 // ═══════════════════════════════════════════════════════════
-const SK = "mundial2026_v6";
+const SK = "mundial2026_v7";
 let state = { matches: JSON.parse(JSON.stringify(MATCHES_BASE)), favorites: [], watchlist: [], apiKey: "" };
 
 function loadState() {
@@ -1002,13 +1002,13 @@ const ABBR = {
 // Árbol oficial de cruces
 const BRACKET_TREE = {
   // R32 — cruces oficiales FIFA (documento horarios peninsulares)
-  73:["2A","2B"],   74:["1C","2F"],   75:["1E","3rd"],  76:["2E","2I"],
-  77:["1F","2C"],   78:["1I","3rd"],  79:["1A","3rd"],  80:["1L","3rd"],
+  73:["2A","2B"],   74:["1F","2C"],   75:["1E","3rd"],  76:["2E","2I"],
+  77:["1I","3rd"],  78:["1C","2F"],   79:["1A","3rd"],  80:["1L","3rd"],
   81:["1G","3rd"],  82:["1D","3rd"],  83:["1H","2J"],   84:["2K","2L"],
   85:["1B","3rd"],  86:["2D","2G"],   87:["1K","3rd"],  88:["1J","2H"],
-  // Octavos: W(a) vs W(b) → número octavo
-  89:[73,74],  90:[75,76],  91:[77,78],  92:[79,80],
-  93:[81,82],  94:[83,84],  95:[85,86],  96:[87,88],
+  // Octavos: W(a) vs W(b) → número octavo — orden oficial FIFA confirmado
+  89:[73,75],  90:[74,77],  91:[76,78],  92:[79,80],
+  93:[81,82],  94:[83,84],  95:[86,88],  96:[85,87],
   // Cuartos
   97:[89,90],  98:[91,92],  99:[93,94],  100:[95,96],
   // Semis
@@ -1018,14 +1018,14 @@ const BRACKET_TREE = {
 };
 
 const R32_PAIRS = [
-  {out:89, a:73, b:74},  // 2ºA vs 2ºB      → oct 4 jul 19:00
-  {out:90, a:75, b:76},  // 1ºE/3º vs 2ºE/2ºI → oct 4 jul 23:00
-  {out:91, a:77, b:78},  // 1ºF/2ºC vs 1ºI/3º → oct 5 jul 22:00
-  {out:92, a:79, b:80},  // 1ºA/3º vs 1ºL/3º  → oct 6 jul 02:00
-  {out:93, a:81, b:82},  // 1ºG/3º vs 1ºD/3º  → oct 6 jul 21:00
-  {out:94, a:83, b:84},  // 1ºH/2ºJ vs 2ºK/2ºL → oct 7 jul 02:00
-  {out:95, a:85, b:86},  // 1ºB/3º vs 2ºD/2ºG  → oct 7 jul 18:00
-  {out:96, a:87, b:88},  // 1ºK/3º vs 1ºJ/2ºH  → oct 7 jul 22:00
+  {out:89, a:73, b:75},  // 2ºA/2ºB vs 1ºE/3º      → oct1 4 jul 19:00
+  {out:90, a:74, b:77},  // 1ºF/2ºC vs 1ºI/3º      → oct2 4 jul 23:00
+  {out:91, a:76, b:78},  // 2ºE/2ºI vs 1ºC/2ºF     → oct3 5 jul 22:00
+  {out:92, a:79, b:80},  // 1ºA/3º vs 1ºL/3º       → oct4 6 jul 02:00
+  {out:93, a:81, b:82},  // 1ºG/3º vs 1ºD/3º       → oct5 6 jul 21:00
+  {out:94, a:83, b:84},  // 1ºH/2ºJ vs 2ºK/2ºL     → oct6 7 jul 02:00
+  {out:95, a:86, b:88},  // 2ºD/2ºG vs 1ºJ/2ºH     → oct7 7 jul 18:00
+  {out:96, a:85, b:87},  // 1ºB/3º vs 1ºK/3º       → oct8 7 jul 22:00
 ];
 const R16_PAIRS = [
   {out:97,  a:89, b:90},
@@ -1160,14 +1160,12 @@ function matchCard(matchId, standings, isFinal) {
   return `<div class="${cls}">${teams.map(r => teamRow(r)).join("")}${scoreBar}</div>`;
 }
 
-function braceHTML(h) {
-  // SVG llave ] shaped connector
-  const w = 14, r = 5;
-  const mid = Math.round(h / 2);
-  return `<div class="bk-brace" style="width:${w}px;height:${h}px">
-    <svg width="${w}" height="${h}" overflow="visible">
-      <path d="M0,${mid} L${r},${mid} L${r},4 Q${r},0 ${r+4},0 L${w},0" fill="none" stroke="rgba(90,120,152,.4)" stroke-width="1.2"/>
-      <path d="M0,${mid} L${r},${mid} L${r},${h-4} Q${r},${h} ${r+4},${h} L${w},${h}" fill="none" stroke="rgba(90,120,152,.4)" stroke-width="1.2"/>
+function braceHTML() {
+  // SVG llave ] shaped connector that stretches to fill parent height via CSS
+  return `<div class="bk-brace">
+    <svg width="14" height="100%" viewBox="0 0 14 100" preserveAspectRatio="none" style="display:block;height:100%">
+      <path d="M0,50 L5,50 L5,4 Q5,0 9,0 L14,0" fill="none" stroke="rgba(90,120,152,.4)" stroke-width="1.2" vector-effect="non-scaling-stroke"/>
+      <path d="M0,50 L5,50 L5,96 Q5,100 9,100 L14,100" fill="none" stroke="rgba(90,120,152,.4)" stroke-width="1.2" vector-effect="non-scaling-stroke"/>
     </svg>
   </div>`;
 }
@@ -1184,7 +1182,7 @@ function renderPairs(pairs, standings, isFinal) {
       : "";
     return `${internalSep}<div class="bk-pair">
       <div class="bk-matches">${cardA}${cardB}</div>
-      ${braceHTML(98)}
+      ${braceHTML()}
       <div class="bk-next">${cardOut}</div>
     </div>`;
   }).join("");
@@ -1197,13 +1195,13 @@ function renderBlock(label, color, pairs, standings, isFinal) {
     background:rgba(255,255,255,.03);
     border:1px solid ${color};
     border-radius:12px;
-    padding:12px 10px 10px;
-    margin-bottom:16px;
+    padding:10px 9px 8px;
+    margin-bottom:10px;
   ">
     <div style="
       font-family:'Barlow Condensed',sans-serif;
       font-size:10px; letter-spacing:3px; text-transform:uppercase;
-      color:${color}; margin-bottom:12px;
+      color:${color}; margin-bottom:8px;
       display:flex; align-items:center; gap:8px;
     ">
       <div style="flex:1;height:1px;background:${color};opacity:.3"></div>
@@ -1231,12 +1229,12 @@ function renderBracket() {
   ).join("")}</div>`;
 
   // Split pairs into two blocks according to the bracket tree:
-  // Block A → SF M101 → Final:  R32 {89,90,93,94} · R16 {97,98} · QF M97,M98
-  // Block B → SF M102 → Final:  R32 {91,92,95,96} · R16 {99,100} · QF M99,M100
-  const BLOCK_A_R32 = [{out:89,a:73,b:74},{out:90,a:75,b:76},{out:93,a:77,b:78},{out:94,a:79,b:80}];
-  const BLOCK_B_R32 = [{out:95,a:86,b:88},{out:96,a:85,b:87},{out:91,a:81,b:82},{out:92,a:83,b:84}];
-  const BLOCK_A_R16 = [{out:97,a:89,b:90},{out:98,a:93,b:94}];
-  const BLOCK_B_R16 = [{out:99,a:91,b:92},{out:100,a:95,b:96}];
+  // Block A → SF M101 → Final:  R32 {89,90,91,92} · R16 {97,98} · QF M97
+  // Block B → SF M102 → Final:  R32 {93,94,95,96} · R16 {99,100} · QF M99
+  const BLOCK_A_R32 = [{out:89,a:73,b:75},{out:90,a:74,b:77},{out:91,a:76,b:78},{out:92,a:79,b:80}];
+  const BLOCK_B_R32 = [{out:93,a:81,b:82},{out:94,a:83,b:84},{out:95,a:86,b:88},{out:96,a:85,b:87}];
+  const BLOCK_A_R16 = [{out:97,a:89,b:90},{out:98,a:91,b:92}];
+  const BLOCK_B_R16 = [{out:99,a:93,b:94},{out:100,a:95,b:96}];
   const BLOCK_A_QF  = [{out:101,a:97,b:98}];
   const BLOCK_B_QF  = [{out:102,a:99,b:100}];
 
