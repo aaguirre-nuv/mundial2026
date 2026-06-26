@@ -1001,14 +1001,15 @@ const ABBR = {
 
 // Árbol oficial de cruces
 const BRACKET_TREE = {
-  // R32 — cruces oficiales FIFA (documento horarios peninsulares)
-  73:["2A","2B"],   74:["1F","2C"],   75:["1E","3rd"],  76:["2E","2I"],
-  77:["1I","3rd"],  78:["1C","2F"],   79:["1A","3rd"],  80:["1L","3rd"],
-  81:["1G","3rd"],  82:["1D","3rd"],  83:["1H","2J"],   84:["2K","2L"],
-  85:["1B","3rd"],  86:["2D","2G"],   87:["1K","3rd"],  88:["1J","2H"],
-  // Octavos: W(a) vs W(b) → número octavo — orden oficial FIFA confirmado
-  89:[73,75],  90:[74,77],  91:[76,78],  92:[79,80],
-  93:[81,82],  94:[83,84],  95:[86,88],  96:[85,87],
+  // R32 — cruces oficiales FIFA (fuente: defirate.com/fifa.com, horarios ET originales convertidos)
+  73:["2A","2B"], 74:["1E","3rd"], 75:["1F","2C"], 76:["1C","2F"],
+  77:["1I","3rd"], 78:["2E","2I"], 79:["1A","3rd"], 80:["1L","3rd"],
+  81:["1D","3rd"], 82:["1G","3rd"], 83:["2K","2L"], 84:["1H","2J"],
+  85:["1B","3rd"], 86:["1J","2H"], 87:["1K","3rd"], 88:["2D","2G"],
+  // Octavos: oficial — M89=W74+W77, M90=W73+W75, M91=W76+W78, M92=W79+W80,
+  //          M93=W83+W84, M94=W81+W82, M95=W86+W88, M96=W85+W87
+  89:[74,77],  90:[73,75],  91:[76,78],  92:[79,80],
+  93:[83,84],  94:[81,82],  95:[86,88],  96:[85,87],
   // Cuartos
   97:[89,90],  98:[91,92],  99:[93,94],  100:[95,96],
   // Semis
@@ -1018,19 +1019,19 @@ const BRACKET_TREE = {
 };
 
 const R32_PAIRS = [
-  {out:89, a:73, b:75},  // 2ºA/2ºB vs 1ºE/3º      → oct1 4 jul 19:00
-  {out:90, a:74, b:77},  // 1ºF/2ºC vs 1ºI/3º      → oct2 4 jul 23:00
-  {out:91, a:76, b:78},  // 2ºE/2ºI vs 1ºC/2ºF     → oct3 5 jul 22:00
-  {out:92, a:79, b:80},  // 1ºA/3º vs 1ºL/3º       → oct4 6 jul 02:00
-  {out:93, a:81, b:82},  // 1ºG/3º vs 1ºD/3º       → oct5 6 jul 21:00
-  {out:94, a:83, b:84},  // 1ºH/2ºJ vs 2ºK/2ºL     → oct6 7 jul 02:00
-  {out:95, a:86, b:88},  // 2ºD/2ºG vs 1ºJ/2ºH     → oct7 7 jul 18:00
-  {out:96, a:85, b:87},  // 1ºB/3º vs 1ºK/3º       → oct8 7 jul 22:00
+  {out:90, a:73, b:75},  // 2ºA/2ºB vs 1ºF/2ºC      → oct (4 jul, 13:00 ET)
+  {out:89, a:74, b:77},  // 1ºE/3º vs 1ºI/3º        → oct (4 jul, 17:00 ET)
+  {out:91, a:76, b:78},  // 1ºC/2ºF vs 2ºE/2ºI      → oct (5 jul, 16:00 ET)
+  {out:92, a:79, b:80},  // 1ºA/3º vs 1ºL/3º        → oct (5 jul, 20:00 ET)
+  {out:94, a:81, b:82},  // 1ºD/3º vs 1ºG/3º        → oct (6 jul, 20:00 ET)
+  {out:93, a:83, b:84},  // 2ºK/2ºL vs 1ºH/2ºJ      → oct (6 jul, 15:00 ET)
+  {out:95, a:86, b:88},  // 1ºJ/2ºH vs 2ºD/2ºG      → oct (7 jul, 12:00 ET)
+  {out:96, a:85, b:87},  // 1ºB/3º vs 1ºK/3º        → oct (7 jul, 16:00 ET)
 ];
 const R16_PAIRS = [
-  {out:97,  a:89, b:90},
+  {out:97,  a:90, b:89},
   {out:98,  a:91, b:92},
-  {out:99,  a:93, b:94},
+  {out:99,  a:94, b:93},
   {out:100, a:95, b:96},
 ];
 const QF_PAIRS = [
@@ -1042,13 +1043,13 @@ const SF_PAIRS = [
 ];
 
 const ROUND_DATES = {
-  // R32 — hora peninsular oficial
-  73:"28 Jun 21:00", 74:"29 Jun 19:00", 75:"29 Jun 22:30", 76:"30 Jun 19:00",
-  77:"30 Jun 03:00", 78:"30 Jun 23:00", 79:"1 Jul 03:00",  80:"1 Jul 18:00",
-  81:"1 Jul 22:00",  82:"2 Jul 02:00",  83:"2 Jul 21:00",  84:"3 Jul 01:00",
-  85:"3 Jul 05:00",  86:"3 Jul 20:00",  87:"4 Jul 03:30",  88:"4 Jul 00:00",
-  // Octavos
-  89:"4 Jul 19:00",  90:"4 Jul 23:00",  91:"5 Jul 22:00",  92:"6 Jul 02:00",
+  // R32 — hora ET original (FIFA/defirate) — convertida a hora peninsular (+6h, GMT+2 vs ET)
+  73:"28 Jun 21:00", 74:"29 Jun 22:30", 75:"30 Jun 03:00", 76:"29 Jun 19:00",
+  77:"30 Jun 23:00", 78:"30 Jun 19:00", 79:"1 Jul 03:00",  80:"1 Jul 18:00",
+  81:"2 Jul 02:00",  82:"1 Jul 22:00",  83:"3 Jul 01:00",  84:"2 Jul 21:00",
+  85:"3 Jul 05:00",  86:"4 Jul 00:00",  87:"4 Jul 03:30",  88:"3 Jul 20:00",
+  // Octavos (ET → peninsular +6h)
+  89:"4 Jul 23:00",  90:"4 Jul 19:00",  91:"5 Jul 22:00",  92:"6 Jul 02:00",
   93:"6 Jul 21:00",  94:"7 Jul 02:00",  95:"7 Jul 18:00",  96:"7 Jul 22:00",
   // Cuartos
   97:"9 Jul 22:00",  98:"10 Jul 21:00", 99:"11 Jul 23:00", 100:"12 Jul 03:00",
@@ -1058,17 +1059,18 @@ const ROUND_DATES = {
   103:"19 Jul 21:00",
 };
 
-// ── Grupos de cada slot de 3º (oficial FIFA) ──────────────────────────────
+// ── Grupos de cada slot de 3º (oficial FIFA/defirate) ─────────────────────
 const THIRD_GROUPS = {
-  75:["A","B","C","D","F"],
-  78:["C","D","F","G","H"],
+  74:["A","B","C","D","F"],
+  77:["C","D","F","G","H"],
   79:["C","E","F","H","I"],
   80:["E","H","I","J","K"],
-  81:["A","E","H","I","J"],
-  82:["B","E","F","I","J"],
+  81:["B","E","F","I","J"],
+  82:["A","E","H","I","J"],
   85:["E","F","G","I","J"],
   87:["D","E","I","J","L"],
 };
+
 
 function getThirds(groups, standings) {
   return groups.map(g => {
@@ -1140,10 +1142,10 @@ function matchCard(matchId, standings, isFinal) {
   const rawDate = ROUND_DATES[matchId] || "";
   // Add day of week — parse "28 Jun 21:00" → look up in a date map
   const BRACKET_DAY = {
-    73:"Dom", 74:"Lun", 75:"Lun", 76:"Mar",
+    73:"Dom", 74:"Lun", 75:"Mar", 76:"Lun",
     77:"Mar", 78:"Mar", 79:"Mié", 80:"Mié",
-    81:"Mié", 82:"Jue", 83:"Jue", 84:"Vie",
-    85:"Vie", 86:"Vie", 87:"Sáb", 88:"Sáb",
+    81:"Jue", 82:"Mié", 83:"Vie", 84:"Jue",
+    85:"Vie", 86:"Sáb", 87:"Sáb", 88:"Vie",
     89:"Sáb", 90:"Sáb", 91:"Dom", 92:"Lun",
     93:"Lun", 94:"Mar", 95:"Mar", 96:"Mar",
     97:"Jue", 98:"Vie", 99:"Sáb", 100:"Dom",
@@ -1228,13 +1230,13 @@ function renderBracket() {
     `<button class="bk-tab${bkRound===t.key?" active":""}" onclick="setBkRound('${t.key}')">${t.label}</button>`
   ).join("")}</div>`;
 
-  // Split pairs into two blocks according to the bracket tree:
-  // Block A → SF M101 → Final:  R32 {89,90,91,92} · R16 {97,98} · QF M97
-  // Block B → SF M102 → Final:  R32 {93,94,95,96} · R16 {99,100} · QF M99
-  const BLOCK_A_R32 = [{out:89,a:73,b:75},{out:90,a:74,b:77},{out:91,a:76,b:78},{out:92,a:79,b:80}];
-  const BLOCK_B_R32 = [{out:93,a:81,b:82},{out:94,a:83,b:84},{out:95,a:86,b:88},{out:96,a:85,b:87}];
-  const BLOCK_A_R16 = [{out:97,a:89,b:90},{out:98,a:91,b:92}];
-  const BLOCK_B_R16 = [{out:99,a:93,b:94},{out:100,a:95,b:96}];
+  // Split pairs into two blocks según árbol FIFA verificado (defirate.com):
+  // Block A → SF M101 → Final:  R32 {73,74,75,76,77,78,79,80} · oct {89,90,91,92} · QF M97,M98
+  // Block B → SF M102 → Final:  R32 {81,82,83,84,85,86,87,88} · oct {93,94,95,96} · QF M99,M100
+  const BLOCK_A_R32 = [{out:90,a:73,b:75},{out:89,a:74,b:77},{out:91,a:76,b:78},{out:92,a:79,b:80}];
+  const BLOCK_B_R32 = [{out:94,a:81,b:82},{out:93,a:83,b:84},{out:95,a:86,b:88},{out:96,a:85,b:87}];
+  const BLOCK_A_R16 = [{out:97,a:90,b:89},{out:98,a:91,b:92}];
+  const BLOCK_B_R16 = [{out:99,a:94,b:93},{out:100,a:95,b:96}];
   const BLOCK_A_QF  = [{out:101,a:97,b:98}];
   const BLOCK_B_QF  = [{out:102,a:99,b:100}];
 
