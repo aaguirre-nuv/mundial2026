@@ -610,12 +610,29 @@ const MATCHES_BASE = [
   {id:70,g:"L",date:"2026-06-24",t:"01:00",h:"Panamá",          a:"Croacia",        sh:null,sa:null,done:false,v:"Toronto"},
   {id:71,g:"L",date:"2026-06-27",t:"23:00",h:"Panamá",          a:"Inglaterra",     sh:null,sa:null,done:false,v:"Nueva York/NJ"},
   {id:72,g:"L",date:"2026-06-27",t:"23:00",h:"Croacia",         a:"Ghana",          sh:null,sa:null,done:false,v:"Filadelfia"},
+  // ── RONDA DE 32 (DIECISEISAVOS) ──
+  {id:73,g:"R32",date:"2026-06-28",t:"21:00",h:"Sudáfrica",       a:"Canadá",         sh:null,sa:null,done:false,v:"Vancouver"},
+  {id:74,g:"R32",date:"2026-06-29",t:"22:30",h:"Alemania",        a:"Paraguay",       sh:null,sa:null,done:false,v:"Houston"},
+  {id:75,g:"R32",date:"2026-06-30",t:"03:00",h:"Países Bajos",    a:"Marruecos",      sh:null,sa:null,done:false,v:"Dallas"},
+  {id:76,g:"R32",date:"2026-06-29",t:"19:00",h:"Brasil",          a:"Japón",          sh:null,sa:null,done:false,v:"Filadelfia"},
+  {id:77,g:"R32",date:"2026-06-30",t:"23:00",h:"Francia",         a:"Suecia",         sh:null,sa:null,done:false,v:"Nueva York/NJ"},
+  {id:78,g:"R32",date:"2026-06-30",t:"19:00",h:"Costa de Marfil", a:"Noruega",        sh:null,sa:null,done:false,v:"Toronto"},
+  {id:79,g:"R32",date:"2026-07-01",t:"03:00",h:"México",          a:"Ecuador",        sh:null,sa:null,done:false,v:"Monterrey"},
+  {id:80,g:"R32",date:"2026-07-01",t:"18:00",h:"Inglaterra",      a:"R.D. Congo",     sh:null,sa:null,done:false,v:"Atlanta"},
+  {id:81,g:"R32",date:"2026-07-02",t:"02:00",h:"EE.UU.",          a:"Bosnia-Herz.",   sh:null,sa:null,done:false,v:"Seattle"},
+  {id:82,g:"R32",date:"2026-07-01",t:"22:00",h:"Bélgica",         a:"Senegal",        sh:null,sa:null,done:false,v:"Seattle"},
+  {id:83,g:"R32",date:"2026-07-03",t:"01:00",h:"Portugal",        a:"Croacia",        sh:null,sa:null,done:false,v:"Toronto"},
+  {id:84,g:"R32",date:"2026-07-02",t:"21:00",h:"España",          a:"Austria",        sh:null,sa:null,done:false,v:"Los Ángeles"},
+  {id:85,g:"R32",date:"2026-07-03",t:"05:00",h:"Suiza",           a:"Argelia",        sh:null,sa:null,done:false,v:"Kansas City"},
+  {id:86,g:"R32",date:"2026-07-04",t:"00:00",h:"Argentina",       a:"Cabo Verde",     sh:null,sa:null,done:false,v:"Miami"},
+  {id:87,g:"R32",date:"2026-07-04",t:"03:30",h:"Colombia",        a:"Ghana",          sh:null,sa:null,done:false,v:"Kansas City"},
+  {id:88,g:"R32",date:"2026-07-03",t:"20:00",h:"Australia",       a:"Egipto",         sh:null,sa:null,done:false,v:"San Francisco"},
 ];
 
 // ═══════════════════════════════════════════════════════════
 // ESTADO
 // ═══════════════════════════════════════════════════════════
-const SK = "mundial2026_v7";
+const SK = "mundial2026_v8";
 let state = { matches: JSON.parse(JSON.stringify(MATCHES_BASE)), favorites: [], watchlist: [], apiKey: "" };
 
 function loadState() {
@@ -715,7 +732,7 @@ function matchRowHTML(m) {
         <div class="match-date">
           <div class="d">${fmtDay(m.date)} ${fmtDate(m.date)}</div>
           <div class="g" style="color:var(--gold);font-weight:600">${timeStr}</div>
-          <div class="g">Gr.${m.g}</div>
+          <div class="g">${m.g==="R32"?"1/16":"Gr."+m.g}</div>
         </div>
         <span class="team-name right">${f(m.h)}</span>
         ${scoreOrVs}
@@ -747,10 +764,10 @@ function renderDashboard() {
 // ═══════════════════════════════════════════════════════════
 let calFilter = "FAV";
 function renderCalendar() {
-  const groups = ["WATCH","FAV","ALL",...Object.keys(GROUPS_DEF)];
+  const groups = ["WATCH","FAV","ALL","R32",...Object.keys(GROUPS_DEF)];
   document.getElementById("cal-chips").innerHTML = groups.map(g => {
     const isWatch = g==="WATCH", isFav = g==="FAV";
-    const lbl = g==="WATCH"?"⭐ Ver":g==="FAV"?"❤️ Favs":g==="ALL"?"Todos":`Gr.${g}`;
+    const lbl = g==="WATCH"?"⭐ Ver":g==="FAV"?"❤️ Favs":g==="ALL"?"Todos":g==="R32"?"🏆 1/16":`Gr.${g}`;
     const active = calFilter===g ? ` active${isWatch?" watch-chip":isFav?" fav-chip":""}` : "";
     return `<button class="chip${active}" onclick="setCalFilter('${g}')">${lbl}</button>`;
   }).join("");
@@ -848,7 +865,7 @@ function openEdit(id) {
   const m = state.matches.find(x=>x.id===id);
   if (!m) return;
   editingId = id;
-  document.getElementById("edit-title").textContent = `Grupo ${m.g} · ${fmtDate(m.date)}`;
+  document.getElementById("edit-title").textContent = `${m.g==="R32"?"1/16":"Grupo "+m.g} · ${fmtDate(m.date)}`;
   document.getElementById("edit-flag-h").textContent = FLAG[m.h]||"";
   document.getElementById("edit-name-h").textContent = m.h;
   document.getElementById("edit-flag-a").textContent = FLAG[m.a]||"";
